@@ -85,3 +85,20 @@ It's "dynamic" because a new row is created on every entry and updated on every 
 
 ## Author
 Deborah — CIT-227-044/2025, MMU Department of Computer Science, Programme Software engineering
+## Limitations & Future Improvements
+
+This system meets the brief's requirements, but a few areas are worth noting as known limitations rather than oversights:
+
+- **Concurrency:** A `threading.Lock` protects slot allocation and the active-vehicles map from race conditions (e.g. two cars entering at the exact same instant). SQLite itself has limited support for concurrent writes under heavy load — a production system would move to PostgreSQL or MySQL for better multi-user handling.
+- **Payment validation:** The fee is recalculated server-side at the moment of payment confirmation, rather than trusting any value submitted from the browser — this closes a tampering gap where a hidden form field could otherwise be edited before submission.
+- **Barrier hardware:** The barrier "opening" is currently simulated via a confirmation message. A real deployment would integrate with physical barrier hardware (e.g. via a serial/GPIO interface) triggered only after payment is verified.
+- **No automated tests:** Manual testing confirmed the entry/exit/payment flow works correctly, but unit tests (e.g. with `pytest`) would be a natural next step to guard against regressions.
+- **Single-lot scope:** The system currently models one parking lot with a fixed slot count. A multi-location version would need a `lots` table and slots scoped per lot.
+
+## Complexity Notes
+
+| Operation | Structure | Complexity | Why |
+|---|---|---|---|
+| Find a vehicle on exit | Dict (hash map) | O(1) average | Direct key lookup by plate number, instead of scanning every slot. |
+| Find a free slot on entry | List scan | O(n) | Slots aren't naturally ordered by availability, so a full scan is used; acceptable at this scale (20 slots), but a free-slot queue could make this O(1) at larger scale. |
+| Check slot availability for display | List comprehension | O(n) | Runs once per page load; fine at this scale, would need caching at very high traffic. |
