@@ -16,6 +16,7 @@ same slot or corrupt the active_vehicles map.
 import sqlite3
 import os
 import threading
+import re
 from datetime import datetime
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "..", "parking.db")
@@ -31,6 +32,15 @@ FEE_BRACKETS = [
     (6, 300),     # up to 6 hours: Kshs. 300
 ]
 OVER_LIMIT_FEE = 500  # anything beyond 6 hours
+
+# Kenyan plates are typically 3 letters + 3 digits + 1 letter (e.g. KAA123B),
+# but we accept a slightly looser pattern to avoid rejecting valid variants.
+PLATE_PATTERN = re.compile(r'^[A-Z0-9]{4,10}$')
+
+
+def is_valid_plate(plate_number):
+    """Rejects empty, too short/long, or non-alphanumeric plate numbers."""
+    return bool(PLATE_PATTERN.match(plate_number))
 
 
 def get_connection():
@@ -80,6 +90,9 @@ class ParkingSystem:
 
     def park_vehicle(self, plate_number):
         """Records a vehicle on arrival. Returns (success, message_or_slot_id)."""
+        if not is_valid_plate(plate_number):
+            return False, "Invalid plate number format."
+
         with self.lock:
             if plate_number in self.active_vehicles:
                 return False, "Vehicle already parked."
@@ -118,6 +131,9 @@ class ParkingSystem:
         or finalized here — that only happens in confirm_payment, which
         recalculates the fee fresh rather than trusting anything the
         browser sends back."""
+        if not is_valid_plate(plate_number):
+            return False, "Invalid plate number format."
+
         record = self.active_vehicles.get(plate_number)
         if record is None:
             return False, "Vehicle not found in parking."
