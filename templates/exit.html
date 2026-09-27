@@ -33,7 +33,6 @@
             <input type="hidden" name="action" value="pay">
             <input type="hidden" name="plate_number" value="{{ bill.plate_number }}">
             <input type="hidden" name="db_id" value="{{ bill.db_id }}">
-            <input type="hidden" name="fee" value="{{ bill.fee }}">
             <button type="submit">Confirm Payment & Open Barrier</button>
         </form>
     {% endif %}

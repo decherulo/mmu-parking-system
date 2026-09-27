@@ -60,9 +60,14 @@ def exit_vehicle():
 
         elif action == "pay":
             db_id = int(request.form.get("db_id"))
-            fee = int(request.form.get("fee"))
-            parking.confirm_payment(plate, db_id, fee)
-            flash(f"Payment received. Barrier open — safe travels, {plate}.")
+            # Note: we deliberately ignore any "fee" field from the form here.
+            # The fee is recalculated server-side inside confirm_payment,
+            # so a tampered hidden field can't reduce what's charged.
+            success, fee = parking.confirm_payment(plate, db_id)
+            if not success:
+                flash("Vehicle not found — payment could not be processed.")
+                return redirect(url_for("exit_vehicle"))
+            flash(f"Payment of Kshs. {fee} received. Barrier open — safe travels, {plate}.")
             return redirect(url_for("index"))
 
     return render_template("exit.html", bill=None)
