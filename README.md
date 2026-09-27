@@ -1,1 +1,87 @@
-# mmu-parking-system
+nano README.md
+# MMU Modern Parking System
+
+A web-based parking management system built with Python (Flask) and SQLite, developed for MMU's Data Structures and Algorithms Task One.
+
+## Scenario
+The client wants a system where drivers can see available parking slots before entry, vehicles are recorded on arrival, and on exit the system calculates time spent and fee owed, opening the barrier once payment is confirmed.
+
+## a) Algorithms
+
+### 1. Slot Availability Display
+START
+FOR each slot in the slot list
+IF slot is not occupied
+ADD slot number to free_slots list
+DISPLAY free_slots and total count
+END
+This runs every time the homepage loads, so drivers always see current availability before entering.
+
+### 2. Vehicle Entry
+START
+INPUT plate_number
+IF plate_number already in active_vehicles
+REJECT — vehicle already parked
+SEARCH slot list for first slot where occupied = False
+IF no free slot found
+REJECT — parking full
+MARK that slot as occupied
+RECORD entry_time = current time
+INSERT (plate_number, slot_id, entry_time) into database
+STORE plate_number, slot_id, entry_time in active_vehicles map
+DISPLAY assigned slot number
+END
+### 3. Vehicle Exit — Fee Calculation
+START
+INPUT plate_number
+LOOKUP plate_number in active_vehicles map
+IF not found
+REJECT — vehicle not recognized
+CALCULATE duration = current time - entry_time
+CONVERT duration to hours
+IF hours <= 0.5:    fee = 0
+ELSE IF hours <= 2:  fee = 50
+ELSE IF hours <= 4:  fee = 100
+ELSE IF hours <= 6:  fee = 300
+ELSE:                fee = 500
+DISPLAY duration and fee, awaiting payment
+END
+### 4. Payment & Barrier Control
+START
+INPUT confirmed payment for plate_number
+MARK the vehicle's slot as unoccupied (increments available slots)
+UPDATE database record: set exit_time, fee, paid = true
+REMOVE plate_number from active_vehicles map
+OPEN barrier (implicit: driver may now exit)
+END
+## b) Data Structures Used
+
+| Structure | Used for | Why |
+|---|---|---|
+| **List** (of slot records) | The fixed set of physical parking slots | The number of physical slots is fixed and known in advance, so a list with direct index access is the natural fit — like a numbered noticeboard where each position represents one real bay. |
+| **Dict / Hash map** | Currently active (parked) vehicles, keyed by plate number | On exit, the system must find a vehicle instantly rather than scanning every slot one by one. A hash map gives O(1) lookup by plate number — like a fast lookup book indexed by name instead of searching page by page. |
+| **SQLite table** (the dynamic database) | Permanent log of every parking session, past and present | The list and dict only hold *current* state in memory and are lost if the app restarts. The database is the durable filing cabinet — every session (entry, exit, fee, payment status) is preserved for records and billing history. |
+
+## c) Dynamic Database Design
+
+**Table: `sessions`**
+
+| Column | Type | Description |
+|---|---|---|
+| id | INTEGER (PK, autoincrement) | Unique session record ID |
+| plate_number | TEXT | Vehicle's number plate |
+| slot_id | INTEGER | Which physical slot was used |
+| entry_time | TEXT (ISO datetime) | When the vehicle arrived |
+| exit_time | TEXT (ISO datetime, nullable) | When the vehicle left (null while still parked) |
+| fee | INTEGER (nullable) | Amount charged, set once calculated |
+| paid | INTEGER (0/1) | Whether payment was confirmed |
+
+It's "dynamic" because a new row is created on every entry and updated on every exit — the table grows and changes continuously as vehicles come and go, while also preserving full history for reporting.
+
+## Tech Stack
+- Python 3, Flask (web framework)
+- SQLite (persistent storage)
+- HTML/Jinja2 templates (frontend)
+
+## Author
+Deborah — CIT-227-044/2025, MMU Department of Computer Science, Programme Software engineering
