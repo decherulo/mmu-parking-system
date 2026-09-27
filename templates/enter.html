@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vehicle Entry</title>
+</head>
+<body>
+    <h1>Record Vehicle Entry</h1>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+        {% for msg in messages %}
+          <li>{{ msg }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+        <label>Plate Number:</label>
+        <input type="text" name="plate_number" required>
+        <button type="submit">Park Vehicle</button>
+    </form>
+
+    <a href="{{ url_for('index') }}">Back to slot display</a>
+</body>
+</html>

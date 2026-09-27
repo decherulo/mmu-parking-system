@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vehicle Exit</title>
+</head>
+<body>
+    <h1>Vehicle Exit</h1>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+        {% for msg in messages %}
+          <li>{{ msg }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    {% if not bill %}
+        <form method="POST">
+            <input type="hidden" name="action" value="calculate">
+            <label>Plate Number:</label>
+            <input type="text" name="plate_number" required>
+            <button type="submit">Calculate Fee</button>
+        </form>
+    {% else %}
+        <h2>Bill for {{ bill.plate_number }}</h2>
+        <p>Slot: {{ bill.slot_id }}</p>
+        <p>Duration: {{ bill.duration_minutes }} minutes</p>
+        <p>Amount Due: Kshs. {{ bill.fee }}</p>
+
+        <form method="POST">
+            <input type="hidden" name="action" value="pay">
+            <input type="hidden" name="plate_number" value="{{ bill.plate_number }}">
+            <input type="hidden" name="db_id" value="{{ bill.db_id }}">
+            <input type="hidden" name="fee" value="{{ bill.fee }}">
+            <button type="submit">Confirm Payment & Open Barrier</button>
+        </form>
+    {% endif %}
+
+    <a href="{{ url_for('index') }}">Back to slot display</a>
+</body>
+</html>
