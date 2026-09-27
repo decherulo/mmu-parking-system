@@ -92,7 +92,7 @@ This system meets the brief's requirements, but a few areas are worth noting as 
 - **Concurrency:** A `threading.Lock` protects slot allocation and the active-vehicles map from race conditions (e.g. two cars entering at the exact same instant). SQLite itself has limited support for concurrent writes under heavy load — a production system would move to PostgreSQL or MySQL for better multi-user handling.
 - **Payment validation:** The fee is recalculated server-side at the moment of payment confirmation, rather than trusting any value submitted from the browser — this closes a tampering gap where a hidden form field could otherwise be edited before submission.
 - **Barrier hardware:** The barrier "opening" is currently simulated via a confirmation message. A real deployment would integrate with physical barrier hardware (e.g. via a serial/GPIO interface) triggered only after payment is verified.
-- **No automated tests:** Manual testing confirmed the entry/exit/payment flow works correctly, but unit tests (e.g. with `pytest`) would be a natural next step to guard against regressions.
+- - **Automated tests:** A `pytest` suite (`test_parking.py`) covers plate validation, entry, duplicate/full rejection, exit fee calculation, and payment confirmation — run with `pytest test_parking.py -v`.
 - **Single-lot scope:** The system currently models one parking lot with a fixed slot count. A multi-location version would need a `lots` table and slots scoped per lot.
 
 ## Complexity Notes
